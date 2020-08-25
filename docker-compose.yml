@@ -1,0 +1,52 @@
+version: '3'
+
+services:
+  redis-master:
+    image: redis
+    restart: always
+    container_name: redis-master
+    ports:
+      - 6379:6379
+    volumes:
+      - ./data/6379:/data
+    command: [
+      '--appendonly ${REDIS_APPENDONLY}'
+    ]
+
+  redis-replica-1:
+    image: redis
+    depends_on:
+      - redis-master
+    restart: always
+    container_name: redis-replica-1
+    ports:
+      - 6380:6379
+    volumes:
+      - ./data/6380:/data
+    command: [
+      '--appendonly ${REDIS_APPENDONLY}',
+      # REPLICA
+      '--replicaof ${HOST_IP} 6379',
+      # REPLICA DOCKER/NAT
+      '--replica-announce-ip ${HOST_IP}',
+      '--replica-announce-port 6380'
+    ]
+
+  redis-replica-2:
+    image: redis
+    depends_on:
+      - redis-master
+    restart: always
+    container_name: redis-replica-2
+    ports:
+      - 6381:6379
+    volumes:
+      - ./data/6381:/data
+    command: [
+      '--appendonly ${REDIS_APPENDONLY}',
+      # REPLICA
+      '--replicaof ${HOST_IP} 6379',
+      # REPLICA DOCKER/NAT
+      '--replica-announce-ip ${HOST_IP}',
+      '--replica-announce-port 6381'
+    ]
